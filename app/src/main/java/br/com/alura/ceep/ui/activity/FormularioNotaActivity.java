@@ -1,5 +1,6 @@
 package br.com.alura.ceep.ui.activity;
 
+import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.Menu;
@@ -32,7 +33,9 @@ public class FormularioNotaActivity extends AppCompatActivity {
             TextView notaTitulo = findViewById(R.id.formulario_nota_titulo);
             TextView notaDescricao = findViewById(R.id.formulario_nota_descricao);
             Nota notaCriada = new Nota(notaTitulo.getText().toString(), notaDescricao.getText().toString());
-            new NotaDAO().insere(notaCriada);
+            Intent resultadoInsercao = new Intent();
+            resultadoInsercao.putExtra("nota", notaCriada);
+            setResult(2, resultadoInsercao);
             finish();
         }
         return super.onOptionsItemSelected(item);
