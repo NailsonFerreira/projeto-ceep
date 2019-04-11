@@ -16,24 +16,35 @@ import br.com.alura.ceep.model.Nota;
 import static br.com.alura.ceep.ui.activity.ActivityConstantes.CHAVE_NOTA;
 import static br.com.alura.ceep.ui.activity.ActivityConstantes.CODIGO_RESULT_NOTA_CRIADA;
 
+/*
+    Activity responsável pela tela com campos de preenchimento das notas
+ */
+
 public class FormularioNotaActivity extends AppCompatActivity {
 
+
+    public static final String TITULO_APPBAR = "Nova Nota";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_formulario_nota);
+
+        setTitle(TITULO_APPBAR);
     }
 
     @Override
+    //Infla as opcões do menu
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.menu_formulario_nota_salva, menu);
+        getMenuInflater().inflate(R.menu.menu_formulario_nota_salva, menu); //Icone para salvar uma nota
 
         return super.onCreateOptionsMenu(menu);
     }
 
     @Override
+    //Verifica o item de opções selecionado
     public boolean onOptionsItemSelected(MenuItem item) {
+        //Cria uma Nota
         if(eMenuSalvaNota(item)){
             Nota notaCriada = criaNota();
             retornaNota(notaCriada);
@@ -42,10 +53,11 @@ public class FormularioNotaActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    //Instancia uma Intent que recebe uma Nota
     private void retornaNota(Nota notaCriada) {
         Intent resultadoInsercao = new Intent();
-        resultadoInsercao.putExtra(CHAVE_NOTA, notaCriada);
-        setResult(CODIGO_RESULT_NOTA_CRIADA, resultadoInsercao);
+        resultadoInsercao.putExtra(CHAVE_NOTA, notaCriada); //Acrescenta uma chave extra do tipo String a intent
+        setResult(CODIGO_RESULT_NOTA_CRIADA, resultadoInsercao); //setta uma chave do tipo final int para que possa ser identificado no metodo onActivityResult
     }
 
     @NonNull
