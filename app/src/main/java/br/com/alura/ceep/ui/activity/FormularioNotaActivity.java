@@ -1,22 +1,19 @@
 package br.com.alura.ceep.ui.activity;
 
 import android.content.Intent;
+import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
 import android.widget.TextView;
 
-import java.io.Serializable;
-
 import br.com.alura.ceep.R;
-import br.com.alura.ceep.dao.NotaDAO;
 import br.com.alura.ceep.model.Nota;
 
 import static br.com.alura.ceep.ui.activity.ActivityConstantes.CHAVE_NOTA;
-import static br.com.alura.ceep.ui.activity.ActivityConstantes.CODIGO_RESULT_NOTA_CRIADA;
+import static br.com.alura.ceep.ui.activity.ActivityConstantes.CHAVE_POSICAO;
+import static br.com.alura.ceep.ui.activity.ActivityConstantes.POSICAO_INVALIDA;
 
 /*
     Activity responsável pela tela com campos de preenchimento das notas
@@ -26,7 +23,9 @@ public class FormularioNotaActivity extends AppCompatActivity {
 
 
     public static final String TITULO_APPBAR = "Nova Nota";
-    private int posicaoRecebida;
+    private int posicaoRecebida = POSICAO_INVALIDA;
+    private TextView titulo;
+    private TextView descricao;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,16 +34,25 @@ public class FormularioNotaActivity extends AppCompatActivity {
 
         setTitle(TITULO_APPBAR);
 
+        inicializaCampos();
+
         //Inicializa campos com dados caso tenha a chave da nota
         Intent dadosRecebidos = getIntent();
-        if(dadosRecebidos.hasExtra(CHAVE_NOTA) && dadosRecebidos.hasExtra("posicao")){
+        if(dadosRecebidos.hasExtra(CHAVE_NOTA)){
             Nota notaRecebida = (Nota) dadosRecebidos.getSerializableExtra(CHAVE_NOTA); //Recebe um Serialazeble com o dados da nota
-            posicaoRecebida = dadosRecebidos.getIntExtra("posicao", -1);
-            TextView titulo = findViewById(R.id.formulario_nota_titulo);
-            titulo.setText(notaRecebida.getTitulo());
-            TextView descricao = findViewById(R.id.formulario_nota_descricao);
-            descricao.setText(notaRecebida.getDescricao());
+            posicaoRecebida = dadosRecebidos.getIntExtra(CHAVE_POSICAO, POSICAO_INVALIDA); //Caso não seja recebido uma posição, srá passado um valor padrão invalido para que nao ocorra um NullPointerException
+            preencheCampos(notaRecebida);
         }
+    }
+
+    private void inicializaCampos() {
+        titulo = findViewById(R.id.formulario_nota_titulo);
+        descricao = findViewById(R.id.formulario_nota_descricao);
+    }
+
+    private void preencheCampos(Nota notaRecebida) {
+        titulo.setText(notaRecebida.getTitulo());
+        descricao.setText(notaRecebida.getDescricao());
     }
 
     @Override
@@ -71,15 +79,13 @@ public class FormularioNotaActivity extends AppCompatActivity {
     private void retornaNota(Nota notaCriada) {
         Intent resultadoInsercao = new Intent();
         resultadoInsercao.putExtra(CHAVE_NOTA, notaCriada); //Acrescenta uma chave extra do tipo String a intent
-        resultadoInsercao.putExtra("posicao", posicaoRecebida);
-        setResult(CODIGO_RESULT_NOTA_CRIADA, resultadoInsercao); //setta uma chave do tipo final int para que possa ser identificado no metodo onActivityResult
+        resultadoInsercao.putExtra(CHAVE_POSICAO, posicaoRecebida);
+        setResult(RESULT_OK, resultadoInsercao); //setta uma chave do tipo final int para que possa ser identificado no metodo onActivityResult
     }
 
     @NonNull
     private Nota criaNota() {
-        TextView notaTitulo = findViewById(R.id.formulario_nota_titulo);
-        TextView notaDescricao = findViewById(R.id.formulario_nota_descricao);
-        return new Nota(notaTitulo.getText().toString(), notaDescricao.getText().toString());
+        return new Nota(titulo.getText().toString(), descricao.getText().toString());
     }
 
     private boolean eMenuSalvaNota(MenuItem item) {

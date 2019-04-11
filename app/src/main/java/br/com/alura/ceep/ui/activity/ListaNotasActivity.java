@@ -2,6 +2,7 @@ package br.com.alura.ceep.ui.activity;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
@@ -18,8 +19,10 @@ import br.com.alura.ceep.ui.activity.recyclerView.ListaNotasAdapter;
 import br.com.alura.ceep.ui.activity.recyclerView.adapter.listener.OnItemClickListener;
 
 import static br.com.alura.ceep.ui.activity.ActivityConstantes.CHAVE_NOTA;
+import static br.com.alura.ceep.ui.activity.ActivityConstantes.CHAVE_POSICAO;
+import static br.com.alura.ceep.ui.activity.ActivityConstantes.CODIGO_REQUISICAO_ALTERA_NOTA;
 import static br.com.alura.ceep.ui.activity.ActivityConstantes.CODIGO_REQUISICAO_INSERE_NOTA;
-import static br.com.alura.ceep.ui.activity.ActivityConstantes.CODIGO_RESULT_NOTA_CRIADA;
+import static br.com.alura.ceep.ui.activity.ActivityConstantes.POSICAO_INVALIDA;
 
 /* Activity Laucher
 App exibe e gerencia uma lista de notas com titulo e descrição.
@@ -49,7 +52,7 @@ public class ListaNotasActivity extends AppCompatActivity {
         botaoInsereNotas.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                vaiParaFormularioNotaActivity();
+                vaiParaFormularioNotaInsere();
             }
         });
     }
@@ -57,7 +60,7 @@ public class ListaNotasActivity extends AppCompatActivity {
     /*Instancia e chama a Tela FormularioNotaActivity.
     alem da intent, passa tambem um final int CODIGO_REQUISICAO_INSERE_NOTA
      */
-    private void vaiParaFormularioNotaActivity() {
+    private void vaiParaFormularioNotaInsere() {
         Intent intent = new Intent(ListaNotasActivity.this, FormularioNotaActivity.class);
         startActivityForResult(intent, CODIGO_REQUISICAO_INSERE_NOTA);
     }
@@ -73,33 +76,49 @@ public class ListaNotasActivity extends AppCompatActivity {
 
     @Override
     //Compartilhamento de dados entre activitys
-    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        if(ehResultadoComNota(requestCode, resultCode, data)){
-            Nota notaRecebida = (Nota)data.getSerializableExtra(CHAVE_NOTA);
-            adapter.adiciona(notaRecebida);
-            new NotaDAO().insere(notaRecebida);
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if(ehResultadoInsereNota(requestCode, data)){
+            if(resultadoOk(resultCode)) {
+                Nota notaRecebida = (Nota) data.getSerializableExtra(CHAVE_NOTA);
+                adapter.adiciona(notaRecebida);
+                new NotaDAO().insere(notaRecebida);
+            }
         }
 
-        if(requestCode == 2 && resultCode == CODIGO_RESULT_NOTA_CRIADA && temNota(data) && data.hasExtra("posicao")){
-            Nota notaRecebida = (Nota) data.getSerializableExtra(CHAVE_NOTA);
-            int posicaoRecebida = data.getIntExtra("posicao", -1);
-            Toast.makeText(this, notaRecebida.getTitulo(), Toast.LENGTH_SHORT).show();
-            new NotaDAO().altera(posicaoRecebida, notaRecebida);
-            adapter.altera(posicaoRecebida, notaRecebida);
+        if(ehResultadoAlteraNota(requestCode, data)){
+            if(resultadoOk(resultCode)){
+                Nota notaRecebida = (Nota) data.getSerializableExtra(CHAVE_NOTA);
+                int posicaoRecebida = data.getIntExtra(CHAVE_POSICAO, POSICAO_INVALIDA);
+                if(posicaoRecebida > POSICAO_INVALIDA) {
+                    new NotaDAO().altera(posicaoRecebida, notaRecebida);
+                    adapter.altera(posicaoRecebida, notaRecebida);
+                } else {
+                    Toast.makeText(this, "Ocorreu um erro", Toast.LENGTH_SHORT).show();
+                }
+            }
+
         }
 
     }
 
-    private boolean ehResultadoComNota(int requestCode, int resultCode, @Nullable Intent data) {
-        return ehCodRequisicaoInsereNota(requestCode) && ehCodResultNotaCriada(resultCode) && temNota(data);
+    private boolean ehResultadoAlteraNota(int requestCode, @NonNull Intent data) {
+        return ehCodigoRequisicaoAlteraNota(requestCode)  && temNota(data);
+    }
+
+    private boolean ehCodigoRequisicaoAlteraNota(int requestCode) {
+        return requestCode == CODIGO_REQUISICAO_ALTERA_NOTA;
+    }
+
+    private boolean ehResultadoInsereNota(int requestCode, @Nullable Intent data) {
+        return ehCodRequisicaoInsereNota(requestCode)  && temNota(data);
     }
 
     private boolean temNota(@Nullable Intent data) {
         return data.hasExtra(CHAVE_NOTA);
     }
 
-    private boolean ehCodResultNotaCriada(int resultCode) {
-        return resultCode == CODIGO_RESULT_NOTA_CRIADA;
+    private boolean resultadoOk(int resultCode) {
+        return resultCode == RESULT_OK;
     }
 
     private boolean ehCodRequisicaoInsereNota(int requestCode) {
@@ -119,11 +138,15 @@ public class ListaNotasActivity extends AppCompatActivity {
         adapter.setOnItemClickListener(new OnItemClickListener() {
             @Override
             public void onItemClick(Nota nota, int position) { // Responde a um clique em um item da lista de notas
-                Intent abreFormularioComNota = new Intent(ListaNotasActivity.this, FormularioNotaActivity.class);
-                abreFormularioComNota.putExtra(CHAVE_NOTA, nota);
-                abreFormularioComNota.putExtra("posicao", position);
-                startActivityForResult(abreFormularioComNota, 2); //Chama a FormularioNotaActivity passando o codigo de requisição com o conteudo extra da intent
+                vaiParaFormularioNotaAltera(nota, position);
             }
         });
+    }
+
+    private void vaiParaFormularioNotaAltera(Nota nota, int position) {
+        Intent abreFormularioComNota = new Intent(ListaNotasActivity.this, FormularioNotaActivity.class);
+        abreFormularioComNota.putExtra(CHAVE_NOTA, nota);
+        abreFormularioComNota.putExtra(CHAVE_POSICAO, position);
+        startActivityForResult(abreFormularioComNota, CODIGO_REQUISICAO_ALTERA_NOTA); //Chama a FormularioNotaActivity passando o codigo de requisição com o conteudo extra da intent
     }
 }
