@@ -17,6 +17,7 @@ import br.com.alura.ceep.model.Nota;
 import br.com.alura.ceep.ui.activity.recyclerView.ListaNotasAdapter;
 import br.com.alura.ceep.ui.activity.recyclerView.adapter.listener.OnItemClickListener;
 
+import static br.com.alura.ceep.ui.activity.ActivityConstantes.CHAVE_NOTA;
 import static br.com.alura.ceep.ui.activity.ActivityConstantes.CODIGO_REQUISICAO_INSERE_NOTA;
 import static br.com.alura.ceep.ui.activity.ActivityConstantes.CODIGO_RESULT_NOTA_CRIADA;
 
@@ -73,11 +74,28 @@ public class ListaNotasActivity extends AppCompatActivity {
     @Override
     //Compartilhamento de dados entre activitys
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        if(ehCodRequisicaoInsereNota(requestCode) && ehCodResultNotaCriada(resultCode) && data.hasExtra("nota")){
-            Nota notaRecebida = (Nota)data.getSerializableExtra("nota");
+        if(ehResultadoComNota(requestCode, resultCode, data)){
+            Nota notaRecebida = (Nota)data.getSerializableExtra(CHAVE_NOTA);
             adapter.adiciona(notaRecebida);
             new NotaDAO().insere(notaRecebida);
         }
+
+        if(requestCode == 2 && resultCode == CODIGO_RESULT_NOTA_CRIADA && temNota(data) && data.hasExtra("posicao")){
+            Nota notaRecebida = (Nota) data.getSerializableExtra(CHAVE_NOTA);
+            int posicaoRecebida = data.getIntExtra("posicao", -1);
+            Toast.makeText(this, notaRecebida.getTitulo(), Toast.LENGTH_SHORT).show();
+            new NotaDAO().altera(posicaoRecebida, notaRecebida);
+            adapter.altera(posicaoRecebida, notaRecebida);
+        }
+
+    }
+
+    private boolean ehResultadoComNota(int requestCode, int resultCode, @Nullable Intent data) {
+        return ehCodRequisicaoInsereNota(requestCode) && ehCodResultNotaCriada(resultCode) && temNota(data);
+    }
+
+    private boolean temNota(@Nullable Intent data) {
+        return data.hasExtra(CHAVE_NOTA);
     }
 
     private boolean ehCodResultNotaCriada(int resultCode) {
@@ -100,8 +118,11 @@ public class ListaNotasActivity extends AppCompatActivity {
         listaNotas.setAdapter(adapter);
         adapter.setOnItemClickListener(new OnItemClickListener() {
             @Override
-            public void onItemClick(Nota nota) { // Responde a um clique em um item da lista de notas
-                Toast.makeText(ListaNotasActivity.this, nota.getTitulo(), Toast.LENGTH_SHORT).show(); //exibe um Toast com o titulo do item clicado
+            public void onItemClick(Nota nota, int position) { // Responde a um clique em um item da lista de notas
+                Intent abreFormularioComNota = new Intent(ListaNotasActivity.this, FormularioNotaActivity.class);
+                abreFormularioComNota.putExtra(CHAVE_NOTA, nota);
+                abreFormularioComNota.putExtra("posicao", position);
+                startActivityForResult(abreFormularioComNota, 2); //Chama a FormularioNotaActivity passando o codigo de requisição com o conteudo extra da intent
             }
         });
     }

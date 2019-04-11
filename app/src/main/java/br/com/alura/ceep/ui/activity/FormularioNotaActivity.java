@@ -9,6 +9,8 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
 
+import java.io.Serializable;
+
 import br.com.alura.ceep.R;
 import br.com.alura.ceep.dao.NotaDAO;
 import br.com.alura.ceep.model.Nota;
@@ -24,6 +26,7 @@ public class FormularioNotaActivity extends AppCompatActivity {
 
 
     public static final String TITULO_APPBAR = "Nova Nota";
+    private int posicaoRecebida;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,6 +34,17 @@ public class FormularioNotaActivity extends AppCompatActivity {
         setContentView(R.layout.activity_formulario_nota);
 
         setTitle(TITULO_APPBAR);
+
+        //Inicializa campos com dados caso tenha a chave da nota
+        Intent dadosRecebidos = getIntent();
+        if(dadosRecebidos.hasExtra(CHAVE_NOTA) && dadosRecebidos.hasExtra("posicao")){
+            Nota notaRecebida = (Nota) dadosRecebidos.getSerializableExtra(CHAVE_NOTA); //Recebe um Serialazeble com o dados da nota
+            posicaoRecebida = dadosRecebidos.getIntExtra("posicao", -1);
+            TextView titulo = findViewById(R.id.formulario_nota_titulo);
+            titulo.setText(notaRecebida.getTitulo());
+            TextView descricao = findViewById(R.id.formulario_nota_descricao);
+            descricao.setText(notaRecebida.getDescricao());
+        }
     }
 
     @Override
@@ -57,6 +71,7 @@ public class FormularioNotaActivity extends AppCompatActivity {
     private void retornaNota(Nota notaCriada) {
         Intent resultadoInsercao = new Intent();
         resultadoInsercao.putExtra(CHAVE_NOTA, notaCriada); //Acrescenta uma chave extra do tipo String a intent
+        resultadoInsercao.putExtra("posicao", posicaoRecebida);
         setResult(CODIGO_RESULT_NOTA_CRIADA, resultadoInsercao); //setta uma chave do tipo final int para que possa ser identificado no metodo onActivityResult
     }
 
