@@ -6,6 +6,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.helper.ItemTouchHelper;
 import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -15,8 +16,9 @@ import java.util.List;
 import br.com.alura.ceep.R;
 import br.com.alura.ceep.dao.NotaDAO;
 import br.com.alura.ceep.model.Nota;
-import br.com.alura.ceep.ui.activity.recyclerView.ListaNotasAdapter;
-import br.com.alura.ceep.ui.activity.recyclerView.adapter.listener.OnItemClickListener;
+import br.com.alura.ceep.ui.recyclerView.ListaNotasAdapter;
+import br.com.alura.ceep.ui.recyclerView.adapter.listener.OnItemClickListener;
+import br.com.alura.ceep.ui.recyclerView.helper.callback.NotaItemTouchHelperCallback;
 
 import static br.com.alura.ceep.ui.activity.ActivityConstantes.CHAVE_NOTA;
 import static br.com.alura.ceep.ui.activity.ActivityConstantes.CHAVE_POSICAO;
@@ -126,9 +128,15 @@ public class ListaNotasActivity extends AppCompatActivity {
     }
 
     //Localiza e instancia um RecyclerView para receber uma lista de notas
-    private void configuraRecyclerView(List<Nota> todasNostas) {
+    private void configuraRecyclerView(List<Nota> todasNotas) {
         RecyclerView listaNotas = findViewById(R.id.lista_notas_recycleview);
-        configuraAdapter(todasNostas, listaNotas);
+        configuraAdapter(todasNotas, listaNotas);
+        configuraItemTouchHelper(listaNotas);
+    }
+
+    private void configuraItemTouchHelper(RecyclerView listaNotas) {
+        ItemTouchHelper itemTouchHelper = new ItemTouchHelper(new NotaItemTouchHelperCallback(adapter));
+        itemTouchHelper.attachToRecyclerView(listaNotas);
     }
 
     //Recebe uma Lista e RecyclerView e prepara o atributo adapter de 'ListaNotasAdapter' para interação com a activity

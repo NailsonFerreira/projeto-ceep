@@ -1,4 +1,4 @@
-package br.com.alura.ceep.ui.activity.recyclerView;
+package br.com.alura.ceep.ui.recyclerView;
 
 import android.content.Context;
 import android.support.annotation.NonNull;
@@ -8,11 +8,12 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import java.util.Collections;
 import java.util.List;
 
 import br.com.alura.ceep.R;
 import br.com.alura.ceep.model.Nota;
-import br.com.alura.ceep.ui.activity.recyclerView.adapter.listener.OnItemClickListener;
+import br.com.alura.ceep.ui.recyclerView.adapter.listener.OnItemClickListener;
 
 public class ListaNotasAdapter extends RecyclerView.Adapter<ListaNotasAdapter.NotaViewHolder> {
 
@@ -51,6 +52,16 @@ public class ListaNotasAdapter extends RecyclerView.Adapter<ListaNotasAdapter.No
 
     public void altera(int posicao, Nota nota) {
         notas.set(posicao, nota);
+        notifyDataSetChanged();
+    }
+
+    public void remove(int posicao) {
+        notas.remove(posicao);
+        notifyDataSetChanged();
+    }
+
+    public void troca(int posicaoInicial, int posicaoFinal) {
+        Collections.swap(notas,posicaoInicial,posicaoFinal);
         notifyDataSetChanged();
     }
 
